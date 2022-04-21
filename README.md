@@ -1,2 +1,2 @@
 # Demo-in-Golang
-一些Golang常用的Demo
+Golang自己写的常用方法的Demo
