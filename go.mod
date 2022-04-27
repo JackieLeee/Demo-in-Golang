@@ -3,10 +3,13 @@ module AKSK-in-Golang
 go 1.17
 
 require (
-	github.com/beego/beego/v2 v2.0.1 // indirect
-	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect
-	github.com/mitchellh/mapstructure v1.3.3 // indirect
+	github.com/golang-jwt/jwt/v4 v4.1.0
+	go.uber.org/zap v1.21.0
+	gopkg.in/ini.v1 v1.66.2
+)
+
+require (
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
-	gopkg.in/ini.v1 v1.66.2 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 )

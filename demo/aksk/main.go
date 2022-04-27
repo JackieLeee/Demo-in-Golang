@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/beego/beego/v2/core/logs"
+	"go.uber.org/zap"
 	"gopkg.in/ini.v1"
 )
 
@@ -22,34 +22,41 @@ const (
 	defaultHash = crypto.SHA256
 )
 
+var Logger *zap.Logger
+
 func main() {
+	var err error
+	Logger, err = zap.NewDevelopment()
+	if err != nil {
+		return
+	}
 	loadConf()
 
-	//客户端签名
+	// 客户端签名
 	timestamp := time.Now().Unix()
 	content := strconv.FormatInt(timestamp, 10)
 	sign, err := GenerateSignature(content, Secret)
 	if err != nil {
-		logs.Warn("generate sign failed: %s", err.Error())
+		Logger.Sugar().Warnf("generate sign failed, err: %s", err.Error())
 		return
 	}
 
-	//传输过程
-	logs.Debug("content: %s", content)
-	logs.Debug("sign: %s", sign)
+	// 传输过程
+	Logger.Sugar().Debugf("content: %s", content)
+	Logger.Sugar().Debugf("sign: %s", sign)
 
-	//服务端验证签名
+	// 服务端验证签名
 	if err = VerifySignature(content, sign, Secret); err != nil {
-		logs.Warn("verify signature failed, err: %s", err)
+		Logger.Sugar().Warnf("verify signature failed, err: %s", err)
 		return
 	}
-	logs.Debug("verify signature success")
+	Logger.Sugar().Debugf("verify signature success")
 }
 
 func loadConf() {
 	apikeyConf, err := ini.Load("conf/apikey.conf")
 	if err != nil {
-		logs.Error("get apikey.conf failed, err: %s", err.Error())
+		Logger.Sugar().Errorf("get apikey.conf failed, err: %s", err.Error())
 		os.Exit(1)
 	}
 	Secret = apikeyConf.Section("apikey").Key("myapp").String()

@@ -4,9 +4,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/beego/beego/v2/core/logs"
 	"github.com/golang-jwt/jwt/v4"
+	"go.uber.org/zap"
 )
+
+var Logger *zap.Logger
 
 var (
 	AccessExpire int64
@@ -64,23 +66,29 @@ func ParseToken(tokenss string) (claims *Claims, err error) {
 }
 
 func main() {
+	var err error
+	Logger, err = zap.NewDevelopment()
+	if err != nil {
+		return
+	}
+
 	AccessSecret = "e9zw3t4hiop2mncga5vx0flky1rqudb76js8stnybwdhuvefjqyh5bv7auzq1kx7"
 	AccessExpire = 7
 
 	token, err := GenerateToken("flagship")
 	if err != nil {
-		logs.Warn("generate token failed, err: %s", err.Error())
+		Logger.Sugar().Warnf("generate token failed, err: %s", err.Error())
 		return
 	}
-	logs.Debug("token[%s]", token)
+	Logger.Sugar().Debugf("token[%s]", token)
 	claims, err := ParseToken(token)
 	if err != nil {
-		logs.Warn("parse token tailed, err: %s", err.Error())
+		Logger.Sugar().Warnf("parse token tailed, err: %s", err.Error())
 		return
 	}
-	logs.Debug("user_id[%s]", claims.UID)
+	Logger.Sugar().Debugf("user_id[%s]", claims.UID)
 	if claims.ExpiresAt.Before(time.Now()) {
-		logs.Warn("this token is expired, err: %s", err.Error())
+		Logger.Sugar().Warnf("this token is expired, err: %s", err.Error())
 		return
 	}
 }
