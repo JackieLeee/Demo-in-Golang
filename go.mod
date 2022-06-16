@@ -3,6 +3,7 @@ module Demo-in-Golang
 go 1.17
 
 require (
+	github.com/allegro/bigcache/v3 v3.0.2
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/gorilla/websocket v1.5.0
