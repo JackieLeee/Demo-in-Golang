@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -34,19 +35,20 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	)
 	// header中添加Upgrade:websocket
 	if wsConn, err = upgrade.Upgrade(w, r, nil); err != nil {
+		log.Println("upgrade error:", err)
 		return
 	}
 
 	if conn, err = impl.InitConnection(wsConn); err != nil {
-		goto ERR
+		log.Println("InitConnection error:", err)
+		return
 	}
+	defer conn.Close()
 
 	go func() {
-		var (
-			err error
-		)
 		for {
-			if err = conn.WriteMessage([]byte("heartbeat")); err != nil {
+			if err := conn.WriteMessage([]byte("heartbeat")); err != nil {
+				log.Println("write heartbeat error:", err)
 				return
 			}
 			time.Sleep(time.Second * 1)
@@ -55,19 +57,22 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		if data, err = conn.ReadMessage(); err != nil {
-			goto ERR
+			log.Printf("read message error: %s", err.Error())
+			return
 		}
+		log.Printf("got message: %s", data)
 		if err = conn.WriteMessage(data); err != nil {
-			goto ERR
+			log.Printf("write message error: %s", err.Error())
+			return
 		}
 	}
-
-ERR:
-	conn.Close()
 }
 
 func main() {
 	// http标准库
 	http.HandleFunc("/ws", wsHandler)
-	http.ListenAndServe("0.0.0.0:5555", nil)
+	if err := http.ListenAndServe("0.0.0.0:5555", nil); err != nil {
+		log.Fatal("ListenAndServe: ", err)
+		return
+	}
 }

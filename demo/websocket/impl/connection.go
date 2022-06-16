@@ -18,14 +18,15 @@ type Connection struct {
 	// 读取websocket的channel
 	inChan chan []byte
 	// 给websocket写消息的channel
-	outChan   chan []byte
+	outChan chan []byte
+	// 关闭标志
 	closeChan chan byte
 	mutex     sync.Mutex
 	// closeChan 状态
 	isClosed bool
 }
 
-// 初始化长连接
+// InitConnection 初始化长连接
 func InitConnection(wsConn *websocket.Conn) (conn *Connection, err error) {
 	conn = &Connection{
 		wsConn:    wsConn,
@@ -40,7 +41,7 @@ func InitConnection(wsConn *websocket.Conn) (conn *Connection, err error) {
 	return
 }
 
-// 读取websocket消息
+// ReadMessage 读取websocket消息
 func (conn *Connection) ReadMessage() (data []byte, err error) {
 	select {
 	case data = <-conn.inChan:
@@ -50,7 +51,7 @@ func (conn *Connection) ReadMessage() (data []byte, err error) {
 	return
 }
 
-// 发送消息到websocket
+// WriteMessage 发送消息到websocket
 func (conn *Connection) WriteMessage(data []byte) (err error) {
 	select {
 	case conn.outChan <- data:
@@ -60,10 +61,10 @@ func (conn *Connection) WriteMessage(data []byte) (err error) {
 	return
 }
 
-// 关闭连接
+// Close 关闭连接
 func (conn *Connection) Close() {
 	// 线程安全的Close,可重入
-	conn.wsConn.Close()
+	_ = conn.wsConn.Close()
 
 	// 只执行一次
 	conn.mutex.Lock()
@@ -79,21 +80,17 @@ func (conn *Connection) readLoop() {
 		data []byte
 		err  error
 	)
+	defer conn.Close()
 	for {
 		if _, data, err = conn.wsConn.ReadMessage(); err != nil {
-			goto ERR
+			return
 		}
-		// 如果数据量过大阻塞在这里,等待inChan有空闲的位置！
 		select {
 		case conn.inChan <- data:
 		case <-conn.closeChan:
-			// closeChan关闭的时候
-			goto ERR
-
+			return
 		}
 	}
-ERR:
-	conn.Close()
 }
 
 func (conn *Connection) writeLoop() {
@@ -101,17 +98,15 @@ func (conn *Connection) writeLoop() {
 		data []byte
 		err  error
 	)
+	defer conn.Close()
 	for {
 		select {
 		case data = <-conn.outChan:
 		case <-conn.closeChan:
-			goto ERR
-
+			return
 		}
 		if err = conn.wsConn.WriteMessage(websocket.TextMessage, data); err != nil {
-			goto ERR
+			return
 		}
 	}
-ERR:
-	conn.Close()
 }
