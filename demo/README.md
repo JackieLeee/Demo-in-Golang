@@ -5,6 +5,8 @@
 4. google_transaction: Google翻译API demo
 5. id_generator: 分布式ID生成demo
 6. jwt: JWT认证demo
-7. timeout_task: 任务超时处理demo
-8. unit_test_template: 单元测试模板
-9. websocket: websocket连接demo
+7. option_design_pattern: 选项设计模式demo
+8. timeout_task: 任务超时处理demo
+9. unit_test_template: 单元测试模板
+10. websocket: websocket连接demo
+11. wire：静态编译依赖注入demo
