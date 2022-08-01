@@ -36,4 +36,6 @@ func InitializeRedisInstance() {
 		}
 		Client = redis.NewClient(opts)
 	})
+
+	Client.Pipeline()
 }
