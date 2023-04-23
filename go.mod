@@ -8,7 +8,7 @@ require (
 	github.com/allegro/bigcache/v3 v3.0.2
 	github.com/bits-and-blooms/bloom/v3 v3.3.1
 	github.com/boombuler/barcode v1.0.1
-	github.com/docker/docker v20.10.17+incompatible
+	github.com/docker/docker v23.0.4+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gocolly/colly/v2 v2.1.0
@@ -29,8 +29,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/antchfx/htmlquery v1.2.3 // indirect
-	github.com/antchfx/xmlquery v1.2.4 // indirect
-	github.com/antchfx/xpath v1.1.8 // indirect
+	github.com/antchfx/xmlquery v1.3.15 // indirect
+	github.com/antchfx/xpath v1.2.3 // indirect
 	github.com/bits-and-blooms/bitset v1.3.1 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/go-units v0.4.0 // indirect
