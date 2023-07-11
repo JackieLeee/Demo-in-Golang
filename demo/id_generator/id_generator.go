@@ -23,9 +23,9 @@ const (
 	// 序列号最大值
 	numberMax int64 = -1 ^ (-1 << numberBits)
 	// 时间戳偏移量
-	timeShift uint8 = workerBits + numberBits
+	timeShift = workerBits + numberBits
 	// 机器id偏移量
-	workerShift uint8 = numberBits
+	workerShift = numberBits
 	// 开始时间，如果在程序跑了一段时间修改了这个值 可能会导致生成相同的ID
 	startTime int64 = 1640966400000
 )

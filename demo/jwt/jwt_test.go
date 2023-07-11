@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	myrand "Demo-in-Golang/util/rand"
+	rand "Demo-in-Golang/util/rand"
 )
 
 /**
@@ -33,11 +33,13 @@ func TestToken(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	AccessSecret = myrand.RandStr(64, myrand.RandMode{
-		Numbers:      true,
-		LowerLetters: true,
-		UpperLetters: true,
-	})
+	AccessSecret = rand.RandStr(
+		64, rand.RandMode{
+			Numbers:      true,
+			LowerLetters: true,
+			UpperLetters: true,
+		},
+	)
 	AccessExpire = 7
 
 	m.Run()

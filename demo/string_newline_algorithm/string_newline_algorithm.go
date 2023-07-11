@@ -1,76 +1,126 @@
 package string_newline_algorithm
 
 import (
-	"math"
 	"strings"
-
-	"github.com/mattn/go-runewidth"
+	"unicode"
 )
 
-// wrapWords 换行算法
-func wrapWords(words []string, spc, lim, pen int) [][]string {
-	n := len(words)
+func CountStringRuneWidth(s string) (res int) {
+	for _, r := range s {
+		res += CountRuneWidth(r)
+	}
+	return
+}
 
-	length := make([][]int, n)
-	for i := 0; i < n; i++ {
-		length[i] = make([]int, n)
-		length[i][i] = runewidth.StringWidth(words[i])
-		for j := i + 1; j < n; j++ {
-			length[i][j] = length[i][j-1] + spc + runewidth.StringWidth(words[j])
+// SplitStringIntoWords 将字符串按照空格分割成单词
+func SplitStringIntoWords(s string) []string {
+	words := make([]string, 0, len(s)/5)
+	var wordBegin int
+	wordPending := false
+	for i, c := range s {
+		if unicode.IsSpace(c) {
+			if wordPending {
+				words = append(words, s[wordBegin:i])
+				wordPending = false
+			}
+			continue
+		}
+		if !wordPending {
+			wordBegin = i
+			wordPending = true
 		}
 	}
-	nbrk := make([]int, n)
-	cost := make([]int, n)
-	for i := range cost {
-		cost[i] = math.MaxInt32
+	if wordPending {
+		words = append(words, s[wordBegin:])
 	}
-	for i := n - 1; i >= 0; i-- {
-		if length[i][n-1] <= lim {
-			cost[i] = 0
-			nbrk[i] = n
-		} else {
-			for j := i + 1; j < n; j++ {
-				d := lim - length[i][j-1]
-				c := d*d + cost[j]
-				if length[i][j-1] > lim {
-					c += pen // too-long lines get a worse penalty
-				}
-				if c < cost[i] {
-					cost[i] = c
-					nbrk[i] = j
+	return words
+}
+
+// WrapTextToLines 将文本按照指定长度进行换行
+func WrapTextToLines(text string, maxLength int) (wrappedLines []string) {
+	if text == " " {
+		return []string{" "}
+	}
+	words := SplitStringIntoWords(text)
+	if len(words) == 0 {
+		return []string{""}
+	}
+
+	var currentLength int
+	var currentWords []string
+	for _, word := range words {
+		wordWidth := CountStringRuneWidth(word)
+		if wordWidth > maxLength {
+			cutWords := SplitTextByLength(word, maxLength)
+			for _, cutWord := range cutWords {
+				cutWordWidth := CountStringRuneWidth(cutWord)
+				if currentLength+cutWordWidth+1 > maxLength {
+					wrappedLines = append(wrappedLines, strings.Join(currentWords, " "))
+					currentLength = cutWordWidth
+					currentWords = []string{cutWord}
+				} else {
+					currentLength += cutWordWidth + 1
+					currentWords = append(currentWords, cutWord)
 				}
 			}
+			continue
+		}
+		if currentLength+wordWidth+1 > maxLength {
+			wrappedLines = append(wrappedLines, strings.Join(currentWords, " "))
+			currentLength = wordWidth
+			currentWords = []string{word}
+		} else {
+			currentLength += wordWidth + 1
+			currentWords = append(currentWords, word)
 		}
 	}
-	var lines [][]string
-	i := 0
-	for i < n {
-		lines = append(lines, words[i:nbrk[i]])
-		i = nbrk[i]
+
+	if currentLength > 0 {
+		wrappedLines = append(wrappedLines, strings.Join(currentWords, " "))
+	}
+	return wrappedLines
+}
+
+// SplitTextByLength 将文本按照指定长度进行分割
+func SplitTextByLength(text string, maxLength int) (lines []string) {
+	var currentLine strings.Builder
+	var currentLength int
+	for _, r := range text {
+		rWidth := CountRuneWidth(r)
+		currentLength += rWidth
+		if currentLength < maxLength {
+			// 拼接该字符
+			currentLine.WriteRune(r)
+		} else if currentLength == maxLength {
+			// 该字符正好填满一行
+			currentLine.WriteRune(r)
+			lines = append(lines, currentLine.String())
+			// 重新开始一行
+			currentLine.Reset()
+			currentLength = 0
+		} else {
+			// 该字符超出一行
+			lines = append(lines, currentLine.String())
+			// 以该字符开始一行
+			currentLine.Reset()
+			currentLine.WriteRune(r)
+			currentLength = rWidth
+		}
+	}
+	// 处理最后一行
+	if currentLength > 0 {
+		lines = append(lines, currentLine.String())
 	}
 	return lines
 }
 
-// splitLineAndKeepWord 将字符串按照指定长度拆分成多行，并保证单词完整（但如果单个单词超过指定长度，则无法保证单词完整）
-func splitLineAndKeepWord(s string, lim int) (lines []string) {
-	// 将字符串按照换行符拆分成多行
-	words := strings.Split(strings.Replace(s, "\n", " ", -1), " ")
-	var newWords []string
-	for i := range words {
-		w := words[i]
-		// 将太长的单词拆分成若干个最大长度为lim的单词
-		for len(w) > lim {
-			newWords = append(newWords, w[:lim])
-			w = w[lim:]
-		}
-		// 将拆分后的单词加入新的单词列表
-		if len(w) > 0 {
-			newWords = append(newWords, w)
-		}
+func IsChineseRune(r rune) bool {
+	return unicode.Is(unicode.Han, r)
+}
+
+func CountRuneWidth(r rune) int {
+	if IsChineseRune(r) {
+		return 2
 	}
-	// 拆分后的单词重新组合成行
-	for _, line := range wrapWords(newWords, 1, lim, 1e5) {
-		lines = append(lines, strings.Join(line, " "))
-	}
-	return lines
+	return 1
 }

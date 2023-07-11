@@ -1,29 +1,29 @@
-package main
+package bigcache
 
 import (
-	"log"
+	"testing"
 	"time"
 
 	"github.com/allegro/bigcache/v3"
 )
 
-func main() {
+func TestBigCache(t *testing.T) {
 	// 初始化缓存
 	cache, err := bigcache.NewBigCache(bigcache.DefaultConfig(10 * time.Minute))
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	// 写入缓存
-	if err := cache.Set("key", []byte("value")); err != nil {
-		log.Fatal(err)
+	if err = cache.Set("key", []byte("value")); err != nil {
+		t.Fatal(err)
 	}
 
 	// 读取缓存
 	entry, err := cache.Get("key")
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
-	log.Println(string(entry))
+	t.Log(string(entry))
 }

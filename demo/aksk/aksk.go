@@ -9,9 +9,9 @@ import (
 )
 
 /**
- * @Author  Flagship
+ * @Author  JackieLee
  * @Date  2022/4/27 16:41
- * @Description aksk签名认证，对时间戳进行对称加密，校验身份是否正确
+ * @Description ak-sk签名认证，对时间戳进行对称加密，校验身份是否正确
  */
 
 var (
@@ -29,10 +29,10 @@ func GenerateSignature(content, secret string) (string, error) {
 		return "", errors.New("the requested hash function is unavailable")
 	}
 
-	hasher := hmac.New(defaultHash.New, []byte(secret))
-	hasher.Write([]byte(content))
+	hm := hmac.New(defaultHash.New, []byte(secret))
+	hm.Write([]byte(content))
 
-	return hex.EncodeToString(hasher.Sum(nil)), nil
+	return hex.EncodeToString(hm.Sum(nil)), nil
 }
 
 // VerifySignature 校验签名
@@ -45,10 +45,10 @@ func VerifySignature(content, sign, secret string) error {
 		return errors.New("the requested hash function is unavailable")
 	}
 
-	hasher := hmac.New(defaultHash.New, []byte(secret))
-	hasher.Write([]byte(content))
+	hm := hmac.New(defaultHash.New, []byte(secret))
+	hm.Write([]byte(content))
 
-	if !hmac.Equal(sig, hasher.Sum(nil)) {
+	if !hmac.Equal(sig, hm.Sum(nil)) {
 		return errors.New("signature is invalid")
 	}
 

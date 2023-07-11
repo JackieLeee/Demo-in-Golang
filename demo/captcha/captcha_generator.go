@@ -1,15 +1,12 @@
-package main
+package captchagenerator
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"net/http"
 	"time"
 
 	"github.com/mojocn/base64Captcha"
 
-	myredis "Demo-in-Golang/util/redis"
+	redis "Demo-in-Golang/util/redis"
 )
 
 /**
@@ -32,7 +29,7 @@ type RedisStore struct {
 
 func (r RedisStore) Set(id string, value string) error {
 	key := fmt.Sprintf(CaptchaPrefix, id)
-	if err := myredis.Client.Set(key, value, CaptchaExpireTime).Err(); err != nil {
+	if err := redis.Client.Set(key, value, CaptchaExpireTime).Err(); err != nil {
 		return err
 	}
 	return nil
@@ -40,12 +37,12 @@ func (r RedisStore) Set(id string, value string) error {
 
 func (r RedisStore) Get(id string, clear bool) string {
 	key := fmt.Sprintf(CaptchaPrefix, id)
-	res, err := myredis.Client.Get(key).Result()
+	res, err := redis.Client.Get(key).Result()
 	if err != nil {
 		return ""
 	}
 	if clear {
-		if err := myredis.Client.Del(key).Err(); err != nil {
+		if err := redis.Client.Del(key).Err(); err != nil {
 			return ""
 		}
 	}
@@ -82,47 +79,4 @@ func GenerateCaptcha() (string, string, error) {
 
 func VerifyCaptcha(id, value string) bool {
 	return store.Verify(id, value, true)
-}
-
-func main() {
-	myredis.InitializeRedisInstance()
-
-	// 获取验证码
-	http.HandleFunc("/api/getCaptcha", func(writer http.ResponseWriter, request *http.Request) {
-		id, base64, err := GenerateCaptcha()
-		if err != nil {
-			return
-		}
-		body := map[string]interface{}{
-			"code": 0,
-			"msg":  "success",
-			"data": map[string]string{
-				"base64": base64,
-				"id":     id,
-			},
-		}
-		json.NewEncoder(writer).Encode(body)
-	})
-
-	// 检验验证码
-	http.HandleFunc("/api/verifyCaptcha", func(writer http.ResponseWriter, request *http.Request) {
-		decoder := json.NewDecoder(request.Body)
-		type Param struct {
-			Id     string `json:"id"`
-			Answer string `json:"answer"`
-		}
-		var param Param
-		if err := decoder.Decode(&param); err != nil {
-			return
-		}
-		body := map[string]interface{}{"code": 1, "msg": "failed"}
-		if VerifyCaptcha(param.Id, param.Answer) {
-			body = map[string]interface{}{"code": 0, "msg": "ok"}
-		}
-		json.NewEncoder(writer).Encode(body)
-	})
-
-	if err := http.ListenAndServe(":8777", nil); err != nil {
-		log.Fatal(err)
-	}
 }

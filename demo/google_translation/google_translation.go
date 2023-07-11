@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	url2 "net/url"
@@ -30,13 +31,20 @@ var (
 
 func Translate(text string, sourceLanguage, targetLanguage Language) (string, error) {
 	var client http.Client
-	url := fmt.Sprintf("%s?client=gtx&sl=%s&tl=%s&dt=t&q=%s",
-		TranslationEngineUrl, sourceLanguage, targetLanguage, url2.QueryEscape(text))
+	url := fmt.Sprintf(
+		"%s?client=gtx&sl=%s&tl=%s&dt=t&q=%s",
+		TranslationEngineUrl, sourceLanguage, targetLanguage, url2.QueryEscape(text),
+	)
 	resp, err := client.Get(url)
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		closeErr := Body.Close()
+		if closeErr != nil {
+			fmt.Printf("close error: %v\n", closeErr)
+		}
+	}(resp.Body)
 
 	bs, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

@@ -30,7 +30,8 @@ func BuildClaims(uid string, ttl int64) Claims {
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(ttl*24) * time.Hour)), // 过期时间
 			IssuedAt:  jwt.NewNumericDate(time.Now()),                                        // 签发时间
 			NotBefore: jwt.NewNumericDate(time.Now()),                                        // 生效时间
-		}}
+		},
+	}
 }
 
 // GenerateToken 生成token
@@ -49,8 +50,8 @@ func secret() jwt.Keyfunc {
 }
 
 // ParseToken 解析token
-func ParseToken(tokenss string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenss, &Claims{}, secret())
+func ParseToken(tokenStr string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, secret())
 	if err != nil {
 		if ve, ok := err.(*jwt.ValidationError); ok {
 			switch {

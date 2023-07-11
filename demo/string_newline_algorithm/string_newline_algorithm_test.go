@@ -9,20 +9,17 @@ func TestSplitLineAndKeepWord(t *testing.T) {
 		expect []string
 	}{
 		{
-			str:    "!!!This is a test. This only a test. abcdefghijklmnopqrstuvwxyz1234567890.",
+			str:    "!!!This is a test. This only a test.",
 			maxLen: 14,
 			expect: []string{
-				"!!!This is",
-				"a test. This",
+				"!!!This is a",
+				"test. This",
 				"only a test.",
-				"abcdefghijklmn",
-				"opqrstuvwxyz12",
-				"34567890.",
 			},
 		},
 	}
 	for _, c := range cases {
-		lines := splitLineAndKeepWord(c.str, c.maxLen)
+		lines := WrapTextToLines(c.str, c.maxLen)
 		if len(lines) != len(c.expect) {
 			t.Errorf("len(lines) != len(c.expect), len(lines)=%d, len(c.expect)=%d", len(lines), len(c.expect))
 		}

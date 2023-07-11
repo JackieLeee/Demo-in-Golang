@@ -9,7 +9,7 @@ import (
 )
 
 /**
- * @Author  Flagship
+ * @Author  JackieLee
  * @Date  2022/4/27 16:41
  * @Description
  */
@@ -37,11 +37,13 @@ func TestAkSk(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	Secret = myrand.RandStr(64, myrand.RandMode{
-		Numbers:      true,
-		LowerLetters: true,
-		UpperLetters: true,
-	})
+	Secret = myrand.RandStr(
+		64, myrand.RandMode{
+			Numbers:      true,
+			LowerLetters: true,
+			UpperLetters: true,
+		},
+	)
 
 	m.Run()
 }

@@ -1,6 +1,4 @@
-package main
-
-import "fmt"
+package option
 
 // Options 选项结构体
 type Options struct {
@@ -38,12 +36,4 @@ func WithPageOption(pageSize, pageNum int64) OptionFunc {
 		opts.PageSize = pageSize
 		opts.PageNum = pageNum
 	}
-}
-
-func main() {
-	opt := InitOptions(
-		WithSortOption("id", "desc"),
-		WithPageOption(10, 1),
-	)
-	fmt.Printf("options:%#v\n", opt)
 }
