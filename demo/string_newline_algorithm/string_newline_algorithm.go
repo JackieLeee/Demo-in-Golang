@@ -12,71 +12,49 @@ func CountStringRuneWidth(s string) (res int) {
 	return
 }
 
-// SplitStringIntoWords 将字符串按照空格分割成单词
-func SplitStringIntoWords(s string) []string {
-	words := make([]string, 0, len(s)/5)
-	var wordBegin int
-	wordPending := false
-	for i, c := range s {
-		if unicode.IsSpace(c) {
-			if wordPending {
-				words = append(words, s[wordBegin:i])
-				wordPending = false
-			}
-			continue
-		}
-		if !wordPending {
-			wordBegin = i
-			wordPending = true
-		}
-	}
-	if wordPending {
-		words = append(words, s[wordBegin:])
-	}
-	return words
-}
-
 // WrapTextToLines 将文本按照指定长度进行换行
 func WrapTextToLines(text string, maxLength int) (wrappedLines []string) {
-	if text == " " {
+        if text == " " {
 		return []string{" "}
 	}
-	words := SplitStringIntoWords(text)
-	if len(words) == 0 {
-		return []string{""}
-	}
-
-	var currentLength int
-	var currentWords []string
-	for _, word := range words {
-		wordWidth := CountStringRuneWidth(word)
-		if wordWidth > maxLength {
-			cutWords := SplitTextByLength(word, maxLength)
-			for _, cutWord := range cutWords {
-				cutWordWidth := CountStringRuneWidth(cutWord)
-				if currentLength+cutWordWidth+1 > maxLength {
-					wrappedLines = append(wrappedLines, strings.Join(currentWords, " "))
-					currentLength = cutWordWidth
-					currentWords = []string{cutWord}
-				} else {
-					currentLength += cutWordWidth + 1
-					currentWords = append(currentWords, cutWord)
-				}
+	var (
+		currentLine      strings.Builder
+		currentLineWidth int
+	)
+	for _, c := range text {
+		// 处理换行符
+		if c == '\n' {
+			if currentLine.Len() > 0 {
+				wrappedLines = append(wrappedLines, currentLine.String())
+				currentLine.Reset()
+				currentLineWidth = 0
 			}
 			continue
 		}
-		if currentLength+wordWidth+1 > maxLength {
-			wrappedLines = append(wrappedLines, strings.Join(currentWords, " "))
-			currentLength = wordWidth
-			currentWords = []string{word}
-		} else {
-			currentLength += wordWidth + 1
-			currentWords = append(currentWords, word)
+		// 处理空格
+		if unicode.IsSpace(c) {
+			if currentLine.Len() > 0 {
+				currentLine.WriteRune(' ')
+			}
+			continue
 		}
+		// 计算当前字符宽度
+		charWidth := CountRuneWidth(c)
+		// 如果添加当前字符会超出最大长度，先保存当前行
+		if currentLineWidth+charWidth > maxLength {
+			if currentLine.Len() > 0 {
+				wrappedLines = append(wrappedLines, currentLine.String())
+				currentLine.Reset()
+				currentLineWidth = 0
+			}
+		}
+		// 写入当前字符
+		currentLine.WriteRune(c)
+		currentLineWidth += charWidth
 	}
-
-	if currentLength > 0 {
-		wrappedLines = append(wrappedLines, strings.Join(currentWords, " "))
+	// 处理最后一行
+	if currentLine.Len() > 0 {
+		wrappedLines = append(wrappedLines, currentLine.String())
 	}
 	return wrappedLines
 }
